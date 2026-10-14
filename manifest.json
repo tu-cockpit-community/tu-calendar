@@ -1,0 +1,29 @@
+{
+  "id": "tuwien.community.calendar",
+  "name": "TU Calendar & Tasks",
+  "version": "1.0.0",
+  "description": "Interactive academic timetable, TUWEL deadlines calendar, and Google Tasks-style assignment checklist for TU Wien students.",
+  "author": {
+    "name": "TU Cockpit Community Contributors",
+    "github": "tu-cockpit-community",
+    "url": "https://github.com/tu-cockpit-community"
+  },
+  "entrypoint": "index.html",
+  "category": "Academic",
+  "homepage": "https://github.com/tu-cockpit-community/tu-calendar",
+  "capabilities": {
+    "network": [
+      "https://tuwel.tuwien.ac.at/*",
+      "https://tiss.tuwien.ac.at/*"
+    ],
+    "storage": {
+      "quotaBytes": 52428800
+    },
+    "notifications": true,
+    "systemClipboard": true
+  },
+  "permissions": [
+    "storage.localstorage",
+    "network.fetch"
+  ]
+}
