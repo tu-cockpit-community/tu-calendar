@@ -1,13 +1,16 @@
-:root {
-  /* Default / Fallback TU Wien Night Theme tokens */
-  --tu-bg-base: #0f172a;
-  --tu-bg-surface: #1e293b;
-  --tu-bg-card: #334155;
-  --tu-bg-hover: #475569;
+@import "tailwindcss";
 
-  --tu-border: #334155;
+:root {
+  /* TU Wien Night Theme tokens */
+  --tu-bg-canvas: #0b0f17;
+  --tu-bg-base: #0b0f17;
+  --tu-bg-surface: #111827;
+  --tu-bg-card: #1f2937;
+  --tu-bg-hover: #374151;
+
+  --tu-border: #1e293b;
   --tu-border-subtle: #1e293b;
-  --tu-border-focus: #38bdf8;
+  --tu-border-focus: #006699;
 
   --tu-text-primary: #f8fafc;
   --tu-text-secondary: #94a3b8;
@@ -34,13 +37,18 @@
   padding: 0;
 }
 
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 body {
   font-family: var(--tu-font-sans);
-  background-color: var(--tu-bg-base);
+  background-color: var(--tu-bg-canvas);
   color: var(--tu-text-primary);
-  min-height: 100vh;
-  margin: 0;
-  overflow: hidden;
   user-select: none;
   -webkit-font-smoothing: antialiased;
 }
@@ -51,7 +59,7 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--tu-bg-base);
+  background: var(--tu-bg-canvas);
 }
 ::-webkit-scrollbar-thumb {
   background: var(--tu-border);

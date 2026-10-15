@@ -213,7 +213,7 @@ export const TasksChecklistView: React.FC<TasksChecklistViewProps> = ({
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs font-semibold text-[var(--tu-text-muted)] uppercase tracking-wider px-1">
             <span>Pending Tasks ({activeTasks.length})</span>
-            {activeTasks.length === 0 && (
+            {activeTasks.length === 0 && tasks.length > 0 && (
               <span className="text-emerald-400 font-normal normal-case flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5" /> All caught up!
               </span>
@@ -221,6 +221,25 @@ export const TasksChecklistView: React.FC<TasksChecklistViewProps> = ({
           </div>
 
           <div className="space-y-1.5">
+            {activeTasks.length === 0 && (
+              tasks.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                  <div className="w-14 h-14 rounded-2xl bg-[var(--tu-bg-surface)] border border-[var(--tu-border)] flex items-center justify-center mb-4 text-[var(--tu-accent)] shadow-sm">
+                    <CheckCircle2 className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-sm font-bold text-[var(--tu-text-primary)] mb-1">
+                    No upcoming deadlines
+                  </h3>
+                  <p className="text-xs text-[var(--tu-text-secondary)] max-w-sm leading-relaxed">
+                    Sync your TISS calendar by visiting TISS or import an .ics file.
+                  </p>
+                </div>
+              ) : (
+                <div className="p-6 text-center text-xs text-[var(--tu-text-muted)] bg-[var(--tu-bg-surface)] border border-[var(--tu-border)] rounded-[var(--tu-radius)]">
+                  All active tasks in this view are completed!
+                </div>
+              )
+            )}
             {activeTasks.map((task) => {
               const urgency = getUrgencyBadge(task.dueDate);
               return (

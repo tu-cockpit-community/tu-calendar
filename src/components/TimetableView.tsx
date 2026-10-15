@@ -70,6 +70,12 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ events }) => {
         </div>
       </div>
 
+      {events.length === 0 && (
+        <div className="mx-4 sm:mx-6 mt-4 p-3 bg-sky-500/10 border border-sky-500/25 rounded-[var(--tu-radius)] text-xs text-sky-300 flex items-center justify-between">
+          <span>Stundenplan ist leer. Öffne TISS für automatische Synchronisation oder importiere eine .ics Datei.</span>
+        </div>
+      )}
+
       {/* Timetable Grid Container */}
       <div className="flex-1 overflow-x-auto overflow-y-auto p-4 sm:p-6">
         <div className="min-w-[700px] border border-[var(--tu-border)] rounded-[var(--tu-radius)] bg-[var(--tu-bg-surface)] overflow-hidden shadow-sm">
