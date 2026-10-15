@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Calendar as CalendarIcon,
   CheckSquare,
   Clock,
   DownloadCloud,
+  Upload,
   X,
   RefreshCw,
 } from "lucide-react";
@@ -25,6 +26,7 @@ export const App: React.FC = () => {
   const [iCalText, setICalText] = useState("");
   const [isImporting, setIsImporting] = useState(false);
   const [importStatus, setImportStatus] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize data from local storage
   useEffect(() => {
@@ -47,6 +49,23 @@ export const App: React.FC = () => {
     setTasks(updated);
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (text) {
+        setICalText(text);
+        setImportStatus(`Loaded ${file.name} (${Math.round(file.size / 1024)} KB). Click "Import Feed" to sync.`);
+      }
+    };
+    reader.onerror = () => {
+      setImportStatus("Failed to read .ics file from disk.");
+    };
+    reader.readAsText(file);
+  };
+
   const handleImportIcs = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsImporting(true);
@@ -61,27 +80,36 @@ export const App: React.FC = () => {
       }
 
       if (!content.trim()) {
-        throw new Error("Please enter a valid iCal URL or paste .ics text.");
+        throw new Error("Please enter a valid iCal URL or select/paste a .ics file.");
       }
 
       const parsed = ICalParserService.parseIcs(content);
       const newTasks = ICalParserService.convertToDeadlineTasks(parsed);
+      const newTimetable = ICalParserService.convertToTimetableEvents(parsed);
 
-      if (newTasks.length === 0) {
+      if (newTasks.length === 0 && newTimetable.length === 0) {
         throw new Error("No VEVENT records found in iCalendar feed.");
       }
 
-      const merged = [...newTasks, ...tasks.filter((t) => !newTasks.some((nt) => nt.id === t.id))];
-      TaskStorageService.saveTasks(merged);
-      setTasks(merged);
+      if (newTasks.length > 0) {
+        const mergedTasks = [...newTasks, ...tasks.filter((t) => !newTasks.some((nt) => nt.id === t.id))];
+        TaskStorageService.saveTasks(mergedTasks);
+        setTasks(mergedTasks);
+      }
 
-      setImportStatus(`Successfully imported ${newTasks.length} events!`);
+      if (newTimetable.length > 0) {
+        const mergedTimetable = [...newTimetable, ...timetable.filter((tt) => !newTimetable.some((ntt) => ntt.id === tt.id))];
+        TaskStorageService.saveTimetable(mergedTimetable);
+        setTimetable(mergedTimetable);
+      }
+
+      setImportStatus(`Successfully synced ${newTasks.length} tasks and ${newTimetable.length} lecture slots!`);
       setTimeout(() => {
         setIsImportModalOpen(false);
         setImportStatus(null);
         setICalUrl("");
         setICalText("");
-      }, 1200);
+      }, 1400);
     } catch (err: any) {
       setImportStatus(`Import error: ${err.message || "Failed to parse feed"}`);
     } finally {
@@ -218,6 +246,28 @@ export const App: React.FC = () => {
                   onChange={(e) => setICalUrl(e.target.value)}
                   className="w-full px-3 py-1.5 bg-[var(--tu-bg-card)] border border-[var(--tu-border)] rounded-[var(--tu-radius-sm)] text-[var(--tu-text-primary)] placeholder:text-[var(--tu-text-muted)] focus:outline-none focus:border-[var(--tu-accent)]"
                 />
+              </div>
+
+              <div className="text-center text-[10px] text-[var(--tu-text-muted)] font-bold uppercase tracking-wider">
+                — OR UPLOAD LOCAL .ICS FILE —
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept=".ics,text/calendar"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full py-2 px-3 border border-dashed border-[var(--tu-border)] hover:border-[var(--tu-accent)] bg-[var(--tu-bg-card)] hover:bg-[var(--tu-bg-hover)] rounded-[var(--tu-radius-sm)] flex items-center justify-center gap-2 text-[var(--tu-text-secondary)] hover:text-[var(--tu-text-primary)] transition-colors cursor-pointer"
+                >
+                  <Upload className="w-3.5 h-3.5 text-[var(--tu-accent)]" />
+                  <span>Choose .ics file from device</span>
+                </button>
               </div>
 
               <div className="text-center text-[10px] text-[var(--tu-text-muted)] font-bold uppercase tracking-wider">

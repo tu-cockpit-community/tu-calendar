@@ -1,4 +1,4 @@
-import { iCalParsedEvent, DeadlineTask } from "../types/calendar";
+import { iCalParsedEvent, DeadlineTask, TimetableEvent, CourseType } from "../types/calendar";
 
 export class ICalParserService {
   /**
@@ -103,5 +103,56 @@ export class ICalParserService {
         notes: ev.description || ev.location,
       };
     });
+  }
+
+  /**
+   * Convert parsed iCal events into student TimetableEvents (VO, UE, VU, etc.)
+   */
+  static convertToTimetableEvents(events: iCalParsedEvent[]): TimetableEvent[] {
+    const timetableEvents: TimetableEvent[] = [];
+    for (const ev of events) {
+      if (!ev.dtstart) continue;
+      const startDate = new Date(ev.dtstart);
+      if (isNaN(startDate.getTime())) continue;
+
+      let dayOfWeek = startDate.getUTCDay();
+      if (dayOfWeek === 0) dayOfWeek = 7;
+      if (dayOfWeek > 5) continue; // Keep Monday-Friday university schedule
+
+      const startHours = String(startDate.getUTCHours()).padStart(2, "0");
+      const startMins = String(startDate.getUTCMinutes()).padStart(2, "0");
+      const startTime = `${startHours}:${startMins}`;
+
+      let endTime = "12:00";
+      if (ev.dtend) {
+        const endDate = new Date(ev.dtend);
+        if (!isNaN(endDate.getTime())) {
+          const endHours = String(endDate.getUTCHours()).padStart(2, "0");
+          const endMins = String(endDate.getUTCMinutes()).padStart(2, "0");
+          endTime = `${endHours}:${endMins}`;
+        }
+      }
+
+      let type: CourseType = "VO";
+      const summaryUpper = ev.summary.toUpperCase();
+      if (summaryUpper.includes("VU")) type = "VU";
+      else if (summaryUpper.includes("UE")) type = "UE";
+      else if (summaryUpper.includes("PR")) type = "PR";
+      else if (summaryUpper.includes("SE")) type = "SE";
+
+      const courseCodeMatch = ev.summary.match(/\b\d{3}\.[A-Z0-9]{3}\b/);
+
+      timetableEvents.push({
+        id: ev.uid || `tt_${Math.random().toString(36).slice(2)}`,
+        courseCode: courseCodeMatch ? courseCodeMatch[0] : "180.TUW",
+        courseName: ev.summary.replace(/^(VO|UE|VU|PR|SE)\s*/i, "").trim(),
+        type,
+        room: ev.location || "Online / Campus",
+        dayOfWeek,
+        startTime,
+        endTime,
+      });
+    }
+    return timetableEvents;
   }
 }
